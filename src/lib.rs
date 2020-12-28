@@ -8,6 +8,10 @@ pub struct Lexer<'a> {
     pos: usize,
 }
 
+pub struct SpannedLexer<'a> {
+    inner: Lexer<'a>,
+}
+
 impl<'a> Lexer<'a> {
     pub fn new(s: &'a [u8]) -> Self {
         let bs: &BStr = s.into();
@@ -58,6 +62,38 @@ impl<'a> Lexer<'a> {
         Some(self.punct(next))
     }
 
+    
+    fn next_spanned(&mut self) -> Option<Item<'a>> {
+        let (next, start) = if self.pos == 0 && self.eat('#') {
+            if self.eat('!') {
+                let token = self.comment();
+                return Some(Item::new(token, 0, self.pos));
+            } else {
+                ('#', 0)
+            }
+        } else {
+            self.skip_whitespace();
+            let start = self.pos;
+            let next = self.next_char()?;
+            (next, start)
+        };
+        if next.is_digit(10) {
+            let token = self.numeral(next);
+            return Some(Item::new(token, start, self.pos));
+        }
+        if next == '"' || next == '\'' {
+            let token = self.literal_string(next);
+            return Some(Item::new(token, start, self.pos));
+        }
+
+        if next.is_ascii_alphabetic() || next == '_' {
+            let token = self.name(next);
+            return Some(Item::new(token, start, self.pos));
+        }
+        let token = self.punct(next);
+        Some(Item::new(token, start, self.pos))
+    }
+
     fn numeral(&mut self, c: char) -> Token<'a> {
         let start = self.pos - 1;
         if c == '0' && self.eat_ascii_ignore_case('x') {
@@ -97,7 +133,7 @@ impl<'a> Lexer<'a> {
                 }
             }
         }
-        Token::Numeral(Cow::Borrowed(&self.original[start..self.pos]))
+        Token::numeral(&self.original[start..self.pos])
     }
 
     fn literal_string(&mut self, c: char) -> Token<'a> {
@@ -366,7 +402,7 @@ impl<'a> Lexer<'a> {
         while self.at_name_cont() {
             let _ = self.next_char();
         }
-        Token::Name(Cow::Borrowed(&self.original[start..self.pos]))
+        Token::name(&self.original[start..self.pos])
     }
 
     fn punct(&mut self, c: char) -> Token<'a> {
@@ -481,7 +517,7 @@ impl<'a> Lexer<'a> {
                 let _ = self.next_char();
             }
         }
-        Token::Comment(Cow::Borrowed(&self.original[start..self.pos]))
+        Token::comment(&self.original[start..self.pos])
     }
 
     fn at(&mut self, c: char) -> bool {
@@ -552,6 +588,11 @@ impl<'a> Lexer<'a> {
     }
 }
 
+enum CharOrToken<'a> {
+    Char(char),
+    Token(Token<'a>),
+}
+
 impl<'a> std::iter::Iterator for Lexer<'a> {
     type Item = Token<'a>;
     fn next(&mut self) -> Option<Self::Item> {
@@ -559,15 +600,60 @@ impl<'a> std::iter::Iterator for Lexer<'a> {
     }
 }
 
+impl<'a> std::iter::Iterator for SpannedLexer<'a> {
+    type Item = Item<'a>;
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner.next_spanned()
+    }
+}
+
+pub struct Item<'a> {
+    pub token: Token<'a>,
+    pub span: Span,
+}
+
+pub struct Span {
+    pub start: usize,
+    pub end: usize,
+}
+
+
+impl<'a> Item<'a> {
+    pub fn new(token: Token<'a>, start: usize, end: usize) -> Self {
+        Self {
+            token,
+            span: Span  {
+                start,
+                end,
+            },
+        }
+    }
+}
+
 #[derive(Debug, Eq, PartialEq)]
 pub enum Token<'a> {
-    Name(Cow<'a, BStr>),
-    Numeral(Cow<'a, BStr>),
+    Name(Cow<'a, str>),
+    Numeral(Cow<'a, str>),
     LiteralString(Cow<'a, BStr>),
     Punct(Punct),
     Keyword(Keyword),
-    Comment(Cow<'a, BStr>),
+    Comment(Cow<'a, str>),
     Unknown(Cow<'a, BStr>),
+}
+
+impl<'a> Token<'a> {
+    pub fn name(s: &'a BStr) -> Self {
+        Self::Name(s.to_str_lossy())
+    }
+    pub fn numeral(s: &'a BStr) -> Self {
+        Self::Numeral(s.to_str_lossy())
+    }
+    pub fn literal_string(s: &'a BStr) -> Self {
+        Self::LiteralString(Cow::Borrowed(s))
+    }
+    pub fn comment(s: &'a BStr) -> Self {
+        Self::Comment(s.to_str_lossy())
+    }
 }
 #[derive(Debug, Eq, PartialEq)]
 pub enum Punct {
