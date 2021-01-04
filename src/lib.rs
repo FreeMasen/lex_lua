@@ -637,7 +637,7 @@ pub enum Token<'a> {
     LiteralString(Cow<'a, BStr>),
     Punct(Punct),
     Keyword(Keyword),
-    Comment(Cow<'a, str>),
+    Comment(Cow<'a, BStr>),
     Unknown(Cow<'a, BStr>),
 }
 
@@ -652,7 +652,7 @@ impl<'a> Token<'a> {
         Self::LiteralString(Cow::Borrowed(s))
     }
     pub fn comment(s: &'a BStr) -> Self {
-        Self::Comment(s.to_str_lossy())
+        Self::Comment(Cow::Borrowed(s))
     }
 }
 #[derive(Debug, Eq, PartialEq)]
