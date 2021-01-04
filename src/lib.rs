@@ -588,11 +588,6 @@ impl<'a> Lexer<'a> {
     }
 }
 
-enum CharOrToken<'a> {
-    Char(char),
-    Token(Token<'a>),
-}
-
 impl<'a> std::iter::Iterator for Lexer<'a> {
     type Item = Token<'a>;
     fn next(&mut self) -> Option<Self::Item> {
