@@ -12,6 +12,14 @@ pub struct SpannedLexer<'a> {
     inner: Lexer<'a>,
 }
 
+impl<'a> SpannedLexer<'a> {
+    pub fn new(s: &'a [u8]) -> Self {
+        Self {
+            inner:Lexer::new(s)
+        }
+    }
+}
+
 impl<'a> Lexer<'a> {
     pub fn new(s: &'a [u8]) -> Self {
         let bs: &BStr = s.into();
