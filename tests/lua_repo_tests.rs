@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use lex_lua::{Token, Lexer};
+use lex_lua::{Lexer, Token};
 
 #[test]
 fn try_all() {
