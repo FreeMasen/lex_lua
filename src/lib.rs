@@ -15,7 +15,7 @@ pub struct SpannedLexer<'a> {
 impl<'a> SpannedLexer<'a> {
     pub fn new(s: &'a [u8]) -> Self {
         Self {
-            inner:Lexer::new(s)
+            inner: Lexer::new(s),
         }
     }
 }
@@ -70,7 +70,6 @@ impl<'a> Lexer<'a> {
         Some(self.punct(next))
     }
 
-    
     fn next_spanned(&mut self) -> Option<Item<'a>> {
         let (next, start) = if self.pos == 0 && self.eat('#') {
             if self.eat('!') {
@@ -192,7 +191,7 @@ impl<'a> Lexer<'a> {
             'a' => {
                 if self.eat('n') {
                     if self.eat('d') {
-                        if self.at_whitespace() {
+                        if !self.at_name_cont() {
                             return Token::Keyword(Keyword::And);
                         }
                     }
@@ -203,7 +202,7 @@ impl<'a> Lexer<'a> {
                     if self.eat('e') {
                         if self.eat('a') {
                             if self.eat('k') {
-                                if self.at_whitespace() {
+                                if !self.at_name_cont() {
                                     return Token::Keyword(Keyword::Break);
                                 }
                             }
@@ -213,7 +212,7 @@ impl<'a> Lexer<'a> {
             }
             'd' => {
                 if self.eat('o') {
-                    if self.at_whitespace() {
+                    if !self.at_name_cont() {
                         return Token::Keyword(Keyword::Do);
                     }
                 }
@@ -222,18 +221,20 @@ impl<'a> Lexer<'a> {
                 if self.eat('l') {
                     if self.eat('s') {
                         if self.eat('e') {
-                            if self.at_whitespace() {
+                            if !self.at_name_cont() {
                                 return Token::Keyword(Keyword::Else);
                             } else if self.eat('i') {
                                 if self.eat('f') {
-                                    return Token::Keyword(Keyword::ElseIf);
+                                    if !self.at_name_cont() {
+                                        return Token::Keyword(Keyword::ElseIf);
+                                    }
                                 }
                             }
                         }
                     }
                 } else if self.eat('n') {
                     if self.eat('d') {
-                        if self.at_whitespace() {
+                        if !self.at_name_cont() {
                             return Token::Keyword(Keyword::End);
                         }
                     }
@@ -244,7 +245,7 @@ impl<'a> Lexer<'a> {
                     if self.eat('l') {
                         if self.eat('s') {
                             if self.eat('e') {
-                                if self.at_whitespace() {
+                                if !self.at_name_cont() {
                                     return Token::Keyword(Keyword::False);
                                 }
                             }
@@ -252,7 +253,7 @@ impl<'a> Lexer<'a> {
                     }
                 } else if self.eat('o') {
                     if self.eat('r') {
-                        if self.at_whitespace() {
+                        if !self.at_name_cont() {
                             return Token::Keyword(Keyword::For);
                         }
                     }
@@ -263,7 +264,7 @@ impl<'a> Lexer<'a> {
                                 if self.eat('i') {
                                     if self.eat('o') {
                                         if self.eat('n') {
-                                            if self.at_whitespace() {
+                                            if !self.at_name_cont() {
                                                 return Token::Keyword(Keyword::Function);
                                             }
                                         }
@@ -278,7 +279,7 @@ impl<'a> Lexer<'a> {
                 if self.eat('o') {
                     if self.eat('t') {
                         if self.eat('o') {
-                            if self.at_whitespace() {
+                            if !self.at_name_cont() {
                                 return Token::Keyword(Keyword::GoTo);
                             }
                         }
@@ -287,11 +288,11 @@ impl<'a> Lexer<'a> {
             }
             'i' => {
                 if self.eat('n') {
-                    if self.at_whitespace() {
+                    if !self.at_name_cont() {
                         return Token::Keyword(Keyword::In);
                     }
                 } else if self.eat('f') {
-                    if self.at_whitespace() {
+                    if !self.at_name_cont() {
                         return Token::Keyword(Keyword::If);
                     }
                 }
@@ -301,7 +302,7 @@ impl<'a> Lexer<'a> {
                     if self.eat('c') {
                         if self.eat('a') {
                             if self.eat('l') {
-                                if self.at_whitespace() {
+                                if !self.at_name_cont() {
                                     return Token::Keyword(Keyword::Local);
                                 }
                             }
@@ -312,13 +313,13 @@ impl<'a> Lexer<'a> {
             'n' => {
                 if self.eat('i') {
                     if self.eat('l') {
-                        if self.at_whitespace() {
+                        if !self.at_name_cont() {
                             return Token::Keyword(Keyword::Nil);
                         }
                     }
                 } else if self.eat('o') {
                     if self.eat('t') {
-                        if self.at_whitespace() {
+                        if !self.at_name_cont() {
                             return Token::Keyword(Keyword::Not);
                         }
                     }
@@ -326,7 +327,7 @@ impl<'a> Lexer<'a> {
             }
             'o' => {
                 if self.eat('r') {
-                    if self.at_whitespace() {
+                    if !self.at_name_cont() {
                         return Token::Keyword(Keyword::Or);
                     }
                 }
@@ -337,7 +338,7 @@ impl<'a> Lexer<'a> {
                         if self.eat('e') {
                             if self.eat('a') {
                                 if self.eat('t') {
-                                    if self.at_whitespace() {
+                                    if !self.at_name_cont() {
                                         return Token::Keyword(Keyword::Repeat);
                                     }
                                 }
@@ -347,7 +348,7 @@ impl<'a> Lexer<'a> {
                         if self.eat('u') {
                             if self.eat('r') {
                                 if self.eat('n') {
-                                    if self.at_whitespace() {
+                                    if !self.at_name_cont() {
                                         return Token::Keyword(Keyword::Return);
                                     }
                                 }
@@ -360,7 +361,7 @@ impl<'a> Lexer<'a> {
                 if self.eat('h') {
                     if self.eat('e') {
                         if self.eat('n') {
-                            if self.at_whitespace() {
+                            if !self.at_name_cont() {
                                 return Token::Keyword(Keyword::Then);
                             }
                         }
@@ -368,7 +369,7 @@ impl<'a> Lexer<'a> {
                 } else if self.eat('r') {
                     if self.eat('u') {
                         if self.eat('e') {
-                            if self.at_whitespace() {
+                            if !self.at_name_cont() {
                                 return Token::Keyword(Keyword::True);
                             }
                         }
@@ -380,7 +381,7 @@ impl<'a> Lexer<'a> {
                     if self.eat('t') {
                         if self.eat('i') {
                             if self.eat('l') {
-                                if self.at_whitespace() {
+                                if !self.at_name_cont() {
                                     return Token::Keyword(Keyword::Until);
                                 }
                             }
@@ -393,7 +394,7 @@ impl<'a> Lexer<'a> {
                     if self.eat('i') {
                         if self.eat('l') {
                             if self.eat('e') {
-                                if self.at_whitespace() {
+                                if !self.at_name_cont() {
                                     return Token::Keyword(Keyword::While);
                                 }
                             }
@@ -556,15 +557,6 @@ impl<'a> Lexer<'a> {
         false
     }
 
-    fn at_whitespace(&mut self) -> bool {
-        if let Some(ch) = self.buffer.peek() {
-            if ch.is_ascii_whitespace() {
-                return true;
-            }
-        }
-        false
-    }
-
     fn skip_whitespace(&mut self) {
         while let Some(ch) = self.buffer.peek() {
             if ch.is_ascii_whitespace() {
@@ -622,15 +614,11 @@ pub struct Span {
     pub end: usize,
 }
 
-
 impl<'a> Item<'a> {
     pub fn new(token: Token<'a>, start: usize, end: usize) -> Self {
         Self {
             token,
-            span: Span  {
-                start,
-                end,
-            },
+            span: Span { start, end },
         }
     }
 }
@@ -767,6 +755,35 @@ pub enum Keyword {
     If,
 }
 
+impl Keyword {
+    pub fn as_str(&self) -> &str {
+        match self {
+            Self::And => "and",
+            Self::Or => "or",
+            Self::Function => "function",
+            Self::Local => "local",
+            Self::For => "for",
+            Self::Do => "do",
+            Self::End => "end",
+            Self::Nil => "nil",
+            Self::True => "true",
+            Self::False => "false",
+            Self::Not => "not",
+            Self::Return => "return",
+            Self::In => "in",
+            Self::While => "while",
+            Self::GoTo => "goto",
+            Self::Break => "break",
+            Self::Repeat => "repeat",
+            Self::Then => "then",
+            Self::ElseIf => "elseif",
+            Self::Else => "else",
+            Self::Until => "until",
+            Self::If => "if",
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -809,6 +826,47 @@ mod test {
             assert_eq!(
                 t.next_token().unwrap(),
                 Token::Punct(string.parse().unwrap())
+            )
+        }
+        let mut t = Lexer::new(b"$");
+        assert_eq!(
+            t.next_token().unwrap(),
+            Token::Unknown(Cow::Borrowed("$".into())),
+        )
+    }
+
+    #[test]
+    fn keywords() {
+        let keywords = &[
+            Keyword::And,
+            Keyword::Or,
+            Keyword::Function,
+            Keyword::Local,
+            Keyword::For,
+            Keyword::Do,
+            Keyword::End,
+            Keyword::Nil,
+            Keyword::True,
+            Keyword::False,
+            Keyword::Not,
+            Keyword::Return,
+            Keyword::In,
+            Keyword::While,
+            Keyword::GoTo,
+            Keyword::Break,
+            Keyword::Repeat,
+            Keyword::Then,
+            Keyword::ElseIf,
+            Keyword::Else,
+            Keyword::Until,
+            Keyword::If,
+        ];
+        for &keyword in keywords {
+            println!("testing {:?}", keyword.as_str());
+            let mut t = Lexer::new(keyword.as_str().as_bytes());
+            assert_eq!(
+                t.next_token().unwrap(),
+                Token::Keyword(keyword)
             )
         }
         let mut t = Lexer::new(b"$");
