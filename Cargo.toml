@@ -1,6 +1,6 @@
 [package]
 name = "lex_lua"
-version = "0.1.5"
+version = "0.1.6"
 authors = ["rfm <r@robertmasen.pizza>"]
 edition = "2018"
 description = "A lexer for Lua"
