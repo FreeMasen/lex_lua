@@ -120,7 +120,7 @@ impl<'a> Lexer<'a> {
             while self.at_digit(10) {
                 let _ = self.next_char();
             }
-            if self.eat('.') {
+            if c != '.' && self.eat('.') {
                 while self.at_digit(10) {
                     let _ = self.next_char();
                 }
@@ -437,7 +437,9 @@ impl<'a> Lexer<'a> {
             ',' => Punct::Comma,
             ']' => Punct::CloseBracket,
             '.' => {
-                if self.eat('.') {
+                if self.at_digit(10) {
+                    return self.numeral('.');
+                } else if self.eat('.') {
                     if self.eat('.') {
                         Punct::Ellipsis
                     } else {
@@ -806,6 +808,7 @@ mod test {
             "0x0.1E",
             "0xA23p-4",
             "0X1.921FB54442D18P+1",
+            ".01",
         ];
         for &string in strings {
             let mut t = Lexer::new(string.as_bytes());
