@@ -635,7 +635,7 @@ impl<'a> Item<'a> {
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Token<'a> {
     Name(Cow<'a, str>),
     Numeral(Cow<'a, str>),
@@ -660,7 +660,7 @@ impl<'a> Token<'a> {
         Self::Comment(Cow::Borrowed(s))
     }
 }
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub enum Punct {
     Ampersand,
     Asterisk,
@@ -741,7 +741,7 @@ impl std::str::FromStr for Punct {
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub enum Keyword {
     And,
     Or,
