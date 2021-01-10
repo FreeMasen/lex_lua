@@ -46,11 +46,7 @@ impl<'a> Lexer<'a> {
 
     pub fn next_token(&mut self) -> Option<Token<'a>> {
         let next = if self.pos == 0 && self.eat('#') {
-            if self.eat('!') {
-                return Some(self.comment());
-            } else {
-                '#'
-            }
+            return Some(self.comment(1));
         } else {
             self.skip_whitespace();
             let next = self.next_char()?;
@@ -72,12 +68,8 @@ impl<'a> Lexer<'a> {
 
     fn next_spanned(&mut self) -> Option<Item<'a>> {
         let (next, start) = if self.pos == 0 && self.eat('#') {
-            if self.eat('!') {
-                let token = self.comment();
-                return Some(Item::new(token, 0, self.pos));
-            } else {
-                ('#', 0)
-            }
+            let token = self.comment(1);
+            return Some(Item::new(token, 0, self.pos));
         } else {
             self.skip_whitespace();
             let start = self.pos;
@@ -419,7 +411,7 @@ impl<'a> Lexer<'a> {
             '+' => Punct::Plus,
             '-' => {
                 if self.eat('-') {
-                    return self.comment();
+                    return self.comment(2);
                 } else {
                     Punct::Minus
                 }
@@ -508,8 +500,8 @@ impl<'a> Lexer<'a> {
         Token::Punct(p)
     }
 
-    fn comment(&mut self) -> Token<'a> {
-        let start = self.pos - 2;
+    fn comment(&mut self, start_len: usize) -> Token<'a> {
+        let start = self.pos - start_len;
         if self.eat('[') && self.eat('[') {
             while !self.at_end() {
                 if self.eat(']') {
