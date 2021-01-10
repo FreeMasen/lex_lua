@@ -502,23 +502,34 @@ impl<'a> Lexer<'a> {
 
     fn comment(&mut self, start_len: usize) -> Token<'a> {
         let start = self.pos - start_len;
-        if self.eat('[') && self.eat('[') {
-            while !self.at_end() {
-                if self.eat(']') {
-                    if self.eat(']') {
-                        break;
+        if self.eat('[') {
+            let eq_ct = self.consume_long_comment_sep();
+            if self.eat('[') {
+                while !self.at_end() {
+                    if self.eat(']') && self.consume_long_comment_sep() == eq_ct {
+                        if self.eat(']') {
+                            break;
+                        }
+                    } else {
+                        let _ = self.next_char();
                     }
-                } else {
-                    let _ = self.next_char();
                 }
-            }
-            let _ = self.next_char();
-        } else {
-            while !self.at('\n') && !self.at_end() {
                 let _ = self.next_char();
+                return Token::comment(&self.original[start..self.pos]);
             }
         }
+        while !self.at('\n') && !self.at_end() {
+            let _ = self.next_char();
+        }
         Token::comment(&self.original[start..self.pos])
+    }
+
+    fn consume_long_comment_sep(&mut self) -> usize {
+        let mut ret = 0;
+        while self.eat('=') {
+            ret += 1;
+        }
+        ret
     }
 
     fn at(&mut self, c: char) -> bool {
@@ -814,7 +825,10 @@ mod test {
         ];
         for &string in strings {
             println!("testing {:?}", string);
-            let mut t = Lexer::new(string.as_bytes());
+            // Prefix here to avoid the len operator from
+            // being interpreted as a comment
+            let prefixed = format!("\n{}", string);
+            let mut t = Lexer::new(prefixed.as_bytes());
             assert_eq!(
                 t.next_token().unwrap(),
                 Token::Punct(string.parse().unwrap())
@@ -899,6 +913,9 @@ alo
             "--single line comment",
             "--[[multi
             line comment]]",
+            "--[==[
+                [[multi with seps]]]]]]]
+            ]==]",
         ];
         for &s in strings {
             let mut t = Lexer::new(s.as_bytes());
