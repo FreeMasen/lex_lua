@@ -607,7 +607,7 @@ impl<'a> std::iter::Iterator for SpannedLexer<'a> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Item<'a> {
     pub token: Token<'a>,
     pub span: Span,
