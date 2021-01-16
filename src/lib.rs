@@ -507,16 +507,7 @@ impl<'a> Lexer<'a> {
         if self.eat('[') {
             let eq_ct = self.consume_long_comment_sep();
             if self.eat('[') {
-                while !self.at_end() {
-                    if self.eat(']') && self.consume_long_comment_sep() == eq_ct {
-                        if self.eat(']') {
-                            break;
-                        }
-                    } else {
-                        let _ = self.next_char();
-                    }
-                }
-                let _ = self.next_char();
+                self.seek_long_string_end(eq_ct);
                 return Token::comment(&self.original[start..self.pos]);
             }
         }
@@ -925,6 +916,25 @@ alo
             assert_eq!(
                 t.next_token().unwrap(),
                 Token::Comment(Cow::Borrowed(s.into()))
+            )
+        }
+    }
+    #[test]
+    fn strange_comments_interspersed() {
+        let lua = "print(--[[ hello ]]'hello world'--[[world]])";
+        let expected = &[
+            Token::Name(Cow::Borrowed("print")),
+            Token::Punct(Punct::OpenParen),
+            Token::Comment(Cow::Borrowed("--[[ hello ]]".into())),
+            Token::literal_string("'hello world'".into()),
+            Token::Comment(Cow::Borrowed("--[[world]]".into())),
+            Token::Punct(Punct::CloseParen),
+        ];
+        let mut t = Lexer::new(lua.as_bytes());
+        for tok in expected {
+            assert_eq!(
+                t.next_token().unwrap(),
+                *tok
             )
         }
     }
