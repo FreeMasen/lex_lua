@@ -598,16 +598,34 @@ impl<'a> std::iter::Iterator for SpannedLexer<'a> {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Item<'a> {
     pub token: Token<'a>,
     pub span: Span,
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct Span {
-    pub start: usize,
-    pub end: usize,
+impl<'a> AsRef<Span> for Item<'a> {
+    fn as_ref(&self) -> &Span {
+        &self.span
+    }
+}
+
+impl<'a> AsRef<Token<'a>> for Item<'a> {
+    fn as_ref(&self) -> &Token<'a> {
+        &self.token
+    }
+}
+
+impl<'a> PartialOrd for Item<'a> {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.span.partial_cmp(&other.span)
+    }
+}
+
+impl <'a> Ord for Item<'a> {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.partial_cmp(other).unwrap()
+    }
 }
 
 impl<'a> Item<'a> {
@@ -617,6 +635,12 @@ impl<'a> Item<'a> {
             span: Span { start, end },
         }
     }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Span {
+    pub start: usize,
+    pub end: usize,
 }
 
 #[derive(Debug, Eq, PartialEq, Clone)]
